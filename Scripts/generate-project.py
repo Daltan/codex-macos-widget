@@ -18,10 +18,14 @@ files = {}
 for path in sorted((root/'Sources').rglob('*.swift')):
     relative = str(path.relative_to(root))
     files[relative] = add(relative, isa='PBXFileReference', lastKnownFileType='sourcecode.swift', path=relative, sourceTree='<group>')
+assets = {}
+for path in sorted((root/'Sources').rglob('*.xcassets')):
+    relative = str(path.relative_to(root))
+    assets[relative] = add(relative, isa='PBXFileReference', lastKnownFileType='folder.assetcatalog', path=relative, sourceTree='<group>')
 app = add('app-product', isa='PBXFileReference', explicitFileType='wrapper.application', path='Codex Usage.app', sourceTree='BUILT_PRODUCTS_DIR')
 widget = add('widget-product', isa='PBXFileReference', explicitFileType='wrapper.app-extension', path='CodexUsageWidget.appex', sourceTree='BUILT_PRODUCTS_DIR')
 products = add('products', isa='PBXGroup', children=[app,widget], name='Products', sourceTree='<group>')
-group = add('root', isa='PBXGroup', children=list(files.values())+[products], sourceTree='<group>')
+group = add('root', isa='PBXGroup', children=list(files.values())+list(assets.values())+[products], sourceTree='<group>')
 def configs(name, settings):
     refs=[]
     for mode in ['Debug','Release']:
@@ -42,7 +46,10 @@ for name, folder, product, bundle, product_type in [('CodexUsage','App',app,'com
     frameworks=add(name+'frameworks',isa='PBXFrameworksBuildPhase',buildActionMask=2147483647,files=[],runOnlyForDeploymentPostprocessing=0)
     settings={'PRODUCT_NAME':'Codex Usage' if folder=='App' else name,'PRODUCT_BUNDLE_IDENTIFIER':bundle,'INFOPLIST_FILE':f'Config/{folder}-Info.plist','CODE_SIGN_ENTITLEMENTS':f'Config/{folder}.entitlements','GENERATE_INFOPLIST_FILE':'NO','LD_RUNPATH_SEARCH_PATHS':['$(inherited)','@executable_path/../Frameworks'],'SWIFT_EMIT_LOC_STRINGS':'YES'}
     if folder=='Widget': settings.update({'APPLICATION_EXTENSION_API_ONLY':'YES','SKIP_INSTALL':'YES','SWIFT_ACTIVE_COMPILATION_CONDITIONS':'$(inherited) WIDGET_EXTENSION'})
-    phases=[phase,frameworks]; deps=[]
+    resources = [add(name+path, isa='PBXBuildFile', fileRef=ref) for path, ref in assets.items() if '/Core/' in path or f'/{folder}/' in path]
+    resource_phase = add(name+'resources', isa='PBXResourcesBuildPhase', buildActionMask=2147483647, files=resources, runOnlyForDeploymentPostprocessing=0)
+    if folder == 'App': settings['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
+    phases=[phase,frameworks,resource_phase]; deps=[]
     if folder=='App':
         build=add('embed-widget-file',isa='PBXBuildFile',fileRef=widget,settings={'ATTRIBUTES':['RemoveHeadersOnCopy']})
         phases.append(add('embed-widget',isa='PBXCopyFilesBuildPhase',buildActionMask=2147483647,dstPath='',dstSubfolderSpec=13,files=[build],name='Embed App Extensions',runOnlyForDeploymentPostprocessing=0))

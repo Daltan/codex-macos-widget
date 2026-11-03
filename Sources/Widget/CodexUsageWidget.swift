@@ -33,11 +33,13 @@ struct WidgetView: View {
     private var windows: [(String, UsageWindow)] {
         entry.state.snapshot?.buckets.flatMap { bucket in bucket.windows.map { (bucket.title, $0) } } ?? []
     }
-    private var visibleCount: Int { family == .systemSmall ? 1 : (family == .systemMedium ? 2 : 4) }
+    private var visibleCount: Int { family == .systemSmall ? 1 : 2 }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Label("Codex", systemImage: "terminal.fill").font(.headline)
+                Label { Text("Codex") } icon: {
+                    Image("CodexMark").resizable().scaledToFit().frame(width: 18, height: 18)
+                }.font(.headline)
                 Spacer(minLength: 2)
                 if entry.state.isRefreshing(at: entry.date) { ProgressView().controlSize(.mini) }
                 Button(intent: RefreshUsageIntent()) { Image(systemName: "arrow.clockwise").font(.caption) }
@@ -68,7 +70,7 @@ struct WidgetView: View {
                                         .font(.system(size: 10)).foregroundStyle(.secondary).lineLimit(1)
                                 } else { Text("待确认重置").font(.caption2).foregroundStyle(.orange) }
                             }
-                            if family == .systemLarge && (entry.state.snapshot?.buckets.count ?? 0) > 1 {
+                            if family == .systemMedium && (entry.state.snapshot?.buckets.count ?? 0) > 1 {
                                 Text(item.0).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
                             }
                         }
@@ -97,6 +99,6 @@ struct CodexUsageWidget: Widget {
         StaticConfiguration(kind: UsageStore.widgetKind, provider: UsageTimelineProvider()) { entry in WidgetView(entry: entry) }
             .configurationDisplayName("Codex Usage")
             .description("查看本机 Codex 真实剩余额度与重置时间。")
-            .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+            .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

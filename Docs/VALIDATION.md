@@ -52,3 +52,24 @@
 4. 中号空间受限：独立紧凑布局，小号显示首周期，中号最多两个，大号最多四个；更多周期在主应用展示，不截断主应用数据模型。
 
 本地详细构建/测试与排障日志保存在忽略的 `.build/`，不会上传仓库。
+
+## Release 安装包验证（2026-11-04）
+
+- `Scripts/build.sh` 现自动生成 Universal DMG、ZIP、双语安装说明和 SHA-256 校验文件；文件保存在忽略的 `.build/releases/`。
+- Release 编译通过，8 项 XCTest 通过；主应用和 Widget Extension 均包含 `arm64`、`x86_64`。
+- 主应用与扩展版本匹配检查、`codesign --verify --deep --strict`、`hdiutil verify` 和全部 SHA-256 校验通过。
+- 只读挂载 DMG、解压 ZIP 后分别校验签名和 bundle 版本，逐文件比较两个包内应用一致；包含应用图标、扩展资源、DMG Applications 快捷方式及双语安装说明。
+- 本机 Xcode 27.2 的 `lipo -verify_arch` 对单一有效输入报告错误；改用 `lipo -archs` 实际输出检查两个架构。macOS 27 的 `hdiutil` 提示命令弃用，但创建、校验和挂载均成功；保留该命令以兼容项目的 macOS 14+ 构建环境。
+- 此处证明安装包完整性，不代表其他 Mac 的 Gatekeeper 首次启动或 Widget 加载已验证。产物仍为 ad-hoc 签名，未经 Developer ID 签名或 Apple 公证。
+
+## 图标与仓库展示更新（2026-11-04，build 3）
+
+- 移除 `.systemLarge`，保留小/中尺寸；中号多配额桶显示来源名。已有大号需手动移除并重新添加受支持尺寸。
+- 标题标识来自 Lobe Icons 的 Codex SVG，保留 MIT 许可及来源。实测 Apple CoreSVG 直接解析上游压缩路径会出现形变；用 WebKit 导出矢量 PDF 后，原生渲染轮廓正常。主应用与扩展共享模板图像。
+- 独立应用图标保留 `Assets/AppIcon.svg` 母版，生成 10 个标准 macOS 图标表示；已检查 1024 像素成图，构建输出含 `AppIcon.icns`、`Assets.car`，Info.plist 的 `CFBundleIconName=AppIcon`。
+- `Scripts/build.sh` 完成 Release 构建、严格签名校验及 DMG/ZIP 打包，最终构建无 warning/error。项目生成器同步资源成员与 AppIcon 设置。
+- `swift test`：8 项测试，0 失败。本次未改变查询、持久化与刷新逻辑。
+- 已更新 `~/Applications/Codex Usage.app`；主应用 AX 状态确认真实额度、成功更新时间及刷新控件。未修改 LaunchAgent 或 Codex 配置。
+- 小/中 × 明/暗共 4 张原生 `NSHostingView` 布局渲染图在 `Docs/images/`，使用本机最近成功快照，无账号标识。预览工具使用源 WidgetView，单独注入 family，并在 WidgetKit 外移除 containerBackground；这不是桌面宿主截图，也不验证系统壁纸着色、刷新交互或所有辅助功能字号。
+- 本轮电脑使用工具返回的是缩小倾斜窗口缩略图，不能据此证明桌面组件的像素级显示。新版本桌面宿主中的完整明暗尺寸验收仍需人工补充；不得把此前 build 2 的桌面验收直接当作 build 3 证据。
+- 英文首页与中文 README、贡献指南、安全说明、双语 Issue/PR 模板已补齐。GitHub About 双语简介及 codex / macos / swiftui / widgetkit / openai / usage-monitor / desktop-widget 主题已保存并通过公开 API 回读。

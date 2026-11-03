@@ -1,75 +1,105 @@
-# Codex Usage Monitor
+<div align="center">
+  <img src="Assets/AppIcon.svg" width="112" alt="Codex Usage app icon">
+  <h1>Codex Usage</h1>
+  <p><strong>Your Codex quota. Right on your Mac desktop.</strong></p>
+  <p>A native macOS companion for remaining usage, reset times, and refresh status.</p>
+  <p><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
+  <p>
+    <img src="https://img.shields.io/badge/macOS-14%2B-182D32?logo=apple" alt="macOS 14 or later">
+    <img src="https://img.shields.io/badge/SwiftUI-native-F05138?logo=swift&logoColor=white" alt="Native SwiftUI">
+    <img src="https://img.shields.io/badge/WidgetKit-small%20%2B%20medium-20B998" alt="Small and medium widgets">
+    <a href="https://github.com/Daltan/codex-macos-widget/stargazers"><img src="https://img.shields.io/github/stars/Daltan/codex-macos-widget?style=flat" alt="GitHub stars"></a>
+  </p>
+  <p><a href="#quick-start">Quick start</a> · <a href="#how-it-works">How it works</a> · <a href="CONTRIBUTING.md">Contribute</a> · <a href="https://github.com/Daltan/codex-macos-widget/issues/new/choose">Report an issue</a></p>
+</div>
 
-个人使用的原生 macOS 额度监视器。SwiftUI 主应用、菜单栏入口及 WidgetKit 小/中/大三种桌面小组件，支持明暗外观。只显示 Codex 实际返回的额度周期，不推算套餐额度。
+Know where your quota stands before your next coding session. Keep a compact widget on your desktop, inspect all returned windows in the app, and refresh using your existing Codex login.
 
-## 构建与安装
+> Independent community project. Not affiliated with or endorsed by OpenAI. The app interface is currently Chinese; documentation is available in English and Chinese.
 
-要求 macOS 14+、完整 Xcode、已登录 ChatGPT 账号的 Codex CLI。Apple Silicon 优先，项目也构建 Intel slice。无第三方库、数据库或服务器，无需 API Key。
+## Preview
+
+<p align="center">
+  <img src="Docs/images/small-light.png" width="170" alt="Small widget, light appearance">
+  <img src="Docs/images/medium-dark.png" width="364" alt="Medium widget, dark appearance">
+</p>
+
+Native SwiftUI renders of the small and medium layouts, using a local successful snapshot. These are layout previews, not desktop screenshots; macOS wallpaper tint and system rendering may differ. No account details are shown.
+
+## Why use it?
+
+| Feature | What you get |
+| --- | --- |
+| Native desktop widgets | Small for a quick glance; medium for up to two quota windows. Light and dark appearance. |
+| Actual quota data | Remaining percentage and reset time from Codex. No guessed message counts or invented usage windows. |
+| Existing login | Authentication stays with your local Codex CLI. No additional account, API key, or hosted backend. |
+| Honest freshness | Last successful data survives failures, with explicit stale and error states. |
+| Refresh controls | Refresh from the app, menu bar, or widget. Optional hourly LaunchAgent for background queries. |
+| Small codebase | SwiftUI + WidgetKit, no third-party runtime dependencies. A separate protocol adapter and testable core. |
+
+The large widget has been retired: a single returned quota window did not justify its footprint. Remove an existing large widget and add a small or medium one. All returned quota buckets remain available in the main app.
+
+## Quick start
+
+Requirements: **macOS 14+**, full **Xcode** to build from source, and **Codex CLI signed in with a ChatGPT account**. Apple Silicon is tested locally; the build also includes Intel code, but Intel hardware has not been tested.
 
 ```sh
+git clone https://github.com/Daltan/codex-macos-widget.git
+cd codex-macos-widget
 Scripts/build.sh
 Scripts/install-app.sh
 ```
 
-应用位于 `~/Applications/Codex Usage.app`。首次打开后，在桌面右键 → 编辑小组件 → 搜索 **Codex Usage**，选择尺寸添加。所有尺寸都有刷新按钮；点击会打开主应用，通过现有 Codex 登录重新查询。首次刷新可能需要数秒。
+1. Open `~/Applications/Codex Usage.app` and let the initial query complete.
+2. Right-click your desktop → **Edit Widgets** → search for **Codex Usage**.
+3. Add a small or medium widget. Its refresh button opens the app to fetch fresh data.
 
-直接打开 `CodexUsage.xcodeproj`，选择 `CodexUsage` scheme 也可构建。默认本地 ad-hoc 签名，不需要导入证书；没有公证，构建产物仅用于本机。构建脚本用 `DEVELOPER_DIR` 选择 Xcode，不更改系统 `xcode-select`。
+Quit the existing app before installing an update. You can also open `CodexUsage.xcodeproj` and run the `CodexUsage` scheme. Builds use local ad-hoc signing and are not notarized; successful installation on this Mac does not establish distribution compatibility on other Macs. The build script sets `DEVELOPER_DIR` without changing system `xcode-select`.
 
-找不到 CLI 时，在主应用右上角设置中选择 Codex 可执行文件。默认查找 Homebrew 与应用内 CLI。应用使用运行环境中的 `CODEX_HOME`（如设置），否则由 Codex 自行定位；Finder/LaunchAgent 不继承 shell 自定义环境，使用默认 Codex 登录。自定义环境使用者应自行保持各启动方式一致。
+If the CLI cannot be found, use the gear button in the app to select the Codex executable. Homebrew locations and the bundled CLI are searched automatically. If you set `CODEX_HOME`, keep it consistent between launch methods: Finder and LaunchAgents do not inherit custom shell environments.
 
-## 数据来源与认证
+## How it works
 
-使用 [OpenAI 官方 App Server 文档](https://learn.chatgpt.com/docs/app-server) 描述的 stdio JSON-RPC 协议：
-
-1. 启动本机 `codex app-server --stdio`，执行 `initialize` / `initialized` 握手。
-2. `account/read`，`refreshToken: false`，读取账号类型及显示信息。
-3. `account/rateLimits/read`，读取真实额度。
-4. 查询完成后关闭子进程。不启动聊天，不调用模型，不消耗重置券，不修改订阅。
-
-额度依据 `usedPercent`、`windowDurationMins`、`resetsAt`；剩余比例为 `100 - usedPercent`（显示限制在 0–100%）。优先使用 `rateLimitsByLimitId` 展示多个配额桶，兼容单桶字段。接口没有返回绝对可用消息数，因此不显示虚构的剩余次数；没有 5 小时周期就不创建该栏目。接口未返回窗口时明确显示缺失。
-
-这是公开文档描述的客户端协议，并非承诺永久稳定的独立额度 REST API；CLI 将 app-server 标为 experimental。无需逆向非公开 HTTP 接口。Codex 自己管理已有登录及其必要的认证续期，监视器不读取、复制、存储 Token/Cookie，不请求或保存 API Key，不调用登录、登出或配置写入方法。程序没有直接访问 Keychain，避免形成第二套凭据。账号邮箱在持久化前掩码处理。
-
-当前适配及真实读取验证基于 Codex CLI 0.165.0。后续协议变动只需替换 `UsageDataProvider` 实现。仅支持 ChatGPT 登录；API-key-only 账号不会冒充为 ChatGPT 套餐额度。
-
-## 架构
-
-```text
-主应用 / 已启用的 LaunchAgent
-  → UsageRefreshManager（去重、锁、超时、失败保留）
-  → CodexUsageDataProvider → codex app-server → Codex 服务
-  → UsageStore（原子 JSON 缓存）
-  → WidgetCenter.reloadTimelines → WidgetKit
-
-Widget 刷新按钮 → App Intent → 主应用查询
+```mermaid
+flowchart LR
+    A[App / optional LaunchAgent] --> B[Refresh coordinator]
+    B --> C[Local Codex app-server]
+    C --> D[Read account and rate limits]
+    D --> E[Atomic local snapshot]
+    E --> F[WidgetKit]
+    F -->|Refresh intent opens app| A
 ```
 
-- `Sources/Core/UsageModel.swift`：周期、配额桶、成功快照及错误状态。
-- `Sources/App/AuthenticationManager.swift`：定位 Codex 可执行文件；认证委托给 Codex。
-- `Sources/App/UsageDataProvider.swift`：独立只读协议适配器，40 秒超时，限制响应缓冲大小，不记录原始 stdout/stderr。
-- `Sources/App/UsageRefreshManager.swift`：主线程状态、跨进程文件锁、10 秒防连点、限流后至少 5 分钟退避。
-- `Sources/Core/UsageStore.swift`：`~/Library/Application Support/CodexUsage/usage.json`，目录权限 0700，快照权限 0600，原子写入。
-- `Sources/Widget/`：只读缓存、按需时间线；没有网络权限或认证目录权限。
+The adapter follows the documented [Codex app-server protocol](https://developers.openai.com/codex/app-server): start `codex app-server --stdio`, perform the `initialize` / `initialized` handshake, call `account/read` with `refreshToken: false`, then `account/rateLimits/read`, and close the child process. It does not start a conversation or request model work.
 
-为适配没有开发者证书的个人本机构建，扩展使用 Apple 文档支持的 [只读文件沙箱例外](https://developer.apple.com/library/archive/documentation/Miscellaneous/Reference/EntitlementKeyReference/Chapters/AppSandboxTemporaryExceptionEntitlements.html)，仅限 `/Library/Application Support/CodexUsage/`（相对用户主目录）。主应用不启用 App Sandbox，以便启动已有 Codex CLI。未关闭系统安全机制。若将来正式分发，应改用合适的签名与 App Group，并单独测试分发环境。
+Remaining usage is `100 − usedPercent`, clamped to 0–100%. The progress bar represents **used** quota. Multiple `rateLimitsByLimitId` buckets are supported, with single-bucket compatibility. A five-hour window appears only when the service returns one. No absolute remaining message count or historical trend is fabricated.
 
-## 自动刷新边界
+The adapter was verified with Codex CLI **0.165.0**. This is a client protocol, not a guaranteed stable standalone quota REST API. API-key-only accounts are not represented as ChatGPT subscription quota.
 
-| 机制 | 行为与限制 |
+## Privacy and storage
+
+- Codex owns authentication and any necessary session renewal. The monitor does not read, copy, or store tokens, cookies, API keys, or Keychain credentials.
+- The monitor does not call login, logout, subscription mutation, or configuration-writing RPCs. Account email is masked before persistence.
+- The cache is `~/Library/Application Support/CodexUsage/usage.json`, written atomically with directory mode `0700` and file mode `0600`.
+- The widget reads that cache. It has no network entitlement or access to the Codex authentication directory.
+- The app must launch your existing CLI, so it is not sandboxed. For local ad-hoc builds, the widget uses a narrowly scoped read-only file sandbox exception. Formal distribution would require appropriate signing, App Groups, and separate validation.
+- Raw protocol output and authentication data do not belong in logs, issues, screenshots, or commits.
+
+## Refresh behavior
+
+| Trigger | Behavior |
 | --- | --- |
-| 应用启动 | 立即查询；短时间重复启动受去重限制 |
-| 应用运行 | 每分钟检查是否距上次尝试满 1 小时；唤醒后补查 |
-| WidgetKit | 请求每小时重新加载缓存；系统可延后，不承诺准点刷新 |
-| LaunchAgent（可选） | 用户登录期间由 launchd 每 3600 秒启动一次查询，不依赖主窗口是否打开 |
-| 手动刷新 | 启动主应用查询，进行中禁用按钮，完成后请求刷新小组件 |
+| App launch | Queries immediately, subject to duplicate-request suppression. |
+| App running | Checks every minute whether an hourly query is due; checks again after wake. |
+| WidgetKit | Requests hourly cache reloads; macOS may delay rendering. |
+| Manual refresh | Opens the app, disables the button while busy, and requests timeline reload on completion. |
+| Optional LaunchAgent | Runs the app with `--refresh-once` every 3,600 seconds while logged in. |
 
-LaunchAgent 让查询不依赖主应用常驻，但睡眠、关机、注销、断网及系统资源限制仍可能延迟执行；WidgetKit 的屏幕渲染也有自己的预算。没有任何机制能保证这些情况下仍严格每小时显示新数据。参考 [Apple WidgetKit 刷新说明](https://developer.apple.com/documentation/widgetkit/keeping-a-widget-up-to-date/)。
+Sleep, shutdown, logout, offline periods, and system budgets can delay updates. Neither background queries nor WidgetKit guarantee an exact hourly on-screen refresh. Data becomes stale after one hour, after a returned reset time, or after a failed query. Old values are never silently reset to zero. Last success and last attempt are stored separately.
 
-超过一小时、已过额度重置时间，或最新查询失败时，旧快照明确标记过期，不将历史额度自动归零或宣称已经重置。最后成功时间与最后尝试时间分开保存。不会把失败覆盖成 0% 使用量。
+### Optional background refresh
 
-## 可选 LaunchAgent
-
-安装会新增 `~/Library/LaunchAgents/com.daltan.codexusage.refresh.plist`，设置 `RunAtLoad` 和 `StartInterval=3600`，只运行本应用 `--refresh-once`。不需要 root，不修改 Codex 配置。应在知情同意后执行：
+Run only if you want to install a user LaunchAgent:
 
 ```sh
 Scripts/launch-agent.sh install
@@ -77,25 +107,46 @@ Scripts/launch-agent.sh status
 Scripts/launch-agent.sh uninstall
 ```
 
-卸载会停止任务，将 plist 移到废纸篓，保留应用与成功缓存。关闭主应用后，后台仍可查询；若希望停止所有查询，应卸载任务并退出应用。升级应用前先退出主应用，然后重新构建并运行安装脚本。应用必须保留在安装路径，移动后需重装 LaunchAgent。
+This creates `~/Library/LaunchAgents/com.daltan.codexusage.refresh.plist`, with `RunAtLoad` and `StartInterval=3600`. No root access or Codex configuration changes are required. Uninstall stops the job and moves its plist to Trash, preserving the app and cache. Keep the app at its installed path; reinstall the agent if you move it. To stop all queries, uninstall the agent and quit the app.
 
-## 排障
+## Troubleshooting
 
-- **认证过期**：在 Codex 中恢复登录，再点刷新。不要向本项目提供 Token 或 API Key。
-- **超时/服务不可用**：检查网络和 Codex CLI 本身是否可用；旧数据会保留。查询不会输出原始服务错误，避免凭据意外进入日志。
-- **缓存错误**：检查 `~/Library/Application Support/CodexUsage` 的归属是否为当前用户。不要使用 `chmod 777`。检查安装版本的 widget entitlement 是否包含首尾斜线。重新运行安装脚本后打开应用刷新。
-- **小组件未出现**：先实际启动已安装主应用，退出再打开小组件选择器。检查 `pluginkit -m -A -D -i com.daltan.codexusage.widget`。本机临时签名不代表其他 Mac 也一定可加载。
-- **后台未更新**：`Scripts/launch-agent.sh status` 中查看 `runs`、`last exit code` 与 `run interval`。退出码 0 表示查询成功或短时间内已有有效尝试；1 表示查询/存储失败，具体分类看应用。
-- **系统日志**：`log show --last 10m --predicate 'subsystem == "com.daltan.codexusage"'`，仅包含缓存错误分类及缓存路径，不含认证信息。
-- **完全卸载**：先卸载 LaunchAgent 并退出应用，再将应用移到废纸篓、移除桌面小组件。按需保留或自行删除本工具缓存及 `com.daltan.codexusage` 偏好设置，不触碰 `.codex`。
+| Symptom | What to check |
+| --- | --- |
+| Login expired | Restore login in Codex, then refresh. Never submit a token or API key to this project. |
+| Timeout / unavailable | Check network access and whether Codex CLI works. The last successful snapshot is preserved. |
+| Cache error | Check ownership of the cache directory. Do not use `chmod 777`. Reinstall the app and refresh. |
+| Widget missing | Launch the installed app once, then reopen the widget gallery. Check `pluginkit -m -A -D -i com.daltan.codexusage.widget`. |
+| Background refresh stopped | Run `Scripts/launch-agent.sh status`; inspect runs, last exit code, and run interval. Exit 0 can also mean a valid recent attempt was reused. |
+| Need diagnostics | Run the command below. Logs contain storage error categories and cache paths, not raw authentication data. |
 
-## 验证与仓库安全
+```sh
+log show --last 10m --predicate 'subsystem == "com.daltan.codexusage"'
+```
+
+To uninstall: remove the optional LaunchAgent, quit the app, move the app to Trash, and remove its widgets. You may separately remove this tool's cache and `com.daltan.codexusage` preferences. Do not delete `.codex`.
+
+## Develop and contribute
 
 ```sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test
 python3 Scripts/scan-secrets.py
+git diff --check
 ```
 
-测试用例中的数值仅用于模型和错误路径测试，不会进入主应用或小组件。实际运行仅使用真实接口响应，placeholder 为空状态。完整验收状态见 `Docs/VALIDATION.md`。
+| Location | Responsibility |
+| --- | --- |
+| `Sources/App/` | SwiftUI app, CLI discovery, read-only protocol adapter, refresh coordination. |
+| `Sources/Core/` | Models, secure cache, shared views, refresh intent, vector Codex mark. |
+| `Sources/Widget/` | Widget timeline and compact layouts. |
+| `Tests/` | Parsing, freshness, persistence, scheduling, and isolated protocol transport tests. |
+| `Assets/` | Editable SVG application icon and third-party attribution. |
+| `Scripts/` | Build, install, project generation, icon rendering, background job, and secret scanning. |
 
-`.gitignore` 排除构建产物、用户 Xcode 状态、私有签名配置、证书、密钥、provisioning profile、环境文件和认证文件。提交只包含源码、项目、脚本、文档和测试；缓存、真实账号信息、原始响应及系统日志都不应入库。无需上传签名材料。
+Changed target membership or build settings? Update `Scripts/generate-project.py` and commit the regenerated project. Test data stays in isolated tests; production placeholders remain empty. See [validation evidence and limitations](Docs/VALIDATION.md) and the [contributing guide](CONTRIBUTING.md).
+
+Useful contributions include CLI compatibility fixes, accessibility improvements, English UI localization, and installation reports from other Mac models. Future candidates include distribution signing and real historical data; these are not implemented features.
+
+If this saves you a window switch, **give it a Star** so other Codex developers can find it. Bug reports and small, well-tested pull requests help even more.
+
+[Icon sources and regeneration](Assets/README.md) · [Security reporting](SECURITY.md) · [中文文档](README.zh-CN.md)
