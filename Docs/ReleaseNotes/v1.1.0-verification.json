@@ -1,0 +1,16 @@
+{
+  "commit": "f7e5d262289a76bc065f4fb3714653533fe9f49d",
+  "version": "1.1.0",
+  "build": 5,
+  "sha256": {
+    "Codex-Usage-1.1.0-5-universal.dmg": "fba1df95ed326b755abeb3868bc46be103177e874bbf267dc97a71fe23fed422",
+    "Codex-Usage-1.1.0-5-universal.zip": "ed5c3ca3a680967811f32ece1e55aedbe3876ac03f45e2dda0077f9874659eff",
+    "INSTALL.txt": "fbc1b97a64acdcfe1472524e434599b06906047ba8fb0d4da01d39f91ff107b8",
+    "SHA256SUMS.txt": "69d4dd63365f204af2d3d9e3cf9b658dcb1add93aa809de5e99be4fa20168415"
+  },
+  "tag": "v1.1.0",
+  "url": "https://github.com/Daltan/codex-macos-widget/releases/tag/v1.1.0",
+  "published": true,
+  "anonymous_downloads_verified": true,
+  "repeat_publish_preserved_release_and_assets": true
+}

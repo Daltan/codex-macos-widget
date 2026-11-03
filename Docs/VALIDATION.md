@@ -91,3 +91,10 @@
 - 6 项隔离 Python 回归测试覆盖版本递增、app/widget 版本不一致、附件缺失/额外文件/散列不一致、tag 冲突与远端 tag 指向错误、跨提交缓存产物拒绝复用。
 - 发布时从确切提交导出源代码，不包含未跟踪 output 或其他本地文件；日志、冻结产物清单与最终回执保存在忽略的 `.build/release-loop/<tag>/`。
 - 端到端成功的标准是公开下载回验通过及 receipt.json 存在；在首次实际运行完成前，不以脚本和测试就绪代表已发布成功。
+
+### 首次完整发布与重复执行验证
+
+- 已通过 `python3 Scripts/release.py run --bump minor --notes-file .build/next-release.md` 发布 v1.1.0 / build 5，包含此前未公开发布的中英本地化。
+- 源提交 `f7e5d262289a76bc065f4fb3714653533fe9f49d`；annotated tag 指向同一提交。11 项 Swift 测试与 6 项 Python 测试通过，四个附件在草稿和公开下载阶段均校验通过。
+- 随后实际重跑 `publish`，复用同一源提交的冻结产物；Release ID、发布时间、附件 ID、散列及上传时间全部保持一致。此项验证重复执行不生成新版本、不覆盖既有附件；未人为制造所有可能的网络中断。
+- 可公开的验证回执见 `Docs/ReleaseNotes/v1.1.0-verification.json`；详细运行日志仍只保存在忽略的 `.build/release-loop/v1.1.0/`。
