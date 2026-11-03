@@ -52,3 +52,12 @@
 4. 中号空间受限：独立紧凑布局，小号显示首周期，中号最多两个，大号最多四个；更多周期在主应用展示，不截断主应用数据模型。
 
 本地详细构建/测试与排障日志保存在忽略的 `.build/`，不会上传仓库。
+
+## Release 安装包验证（2026-11-04）
+
+- `Scripts/build.sh` 现自动生成 Universal DMG、ZIP、双语安装说明和 SHA-256 校验文件；文件保存在忽略的 `.build/releases/`。
+- Release 编译通过，8 项 XCTest 通过；主应用和 Widget Extension 均包含 `arm64`、`x86_64`。
+- 主应用与扩展版本匹配检查、`codesign --verify --deep --strict`、`hdiutil verify` 和全部 SHA-256 校验通过。
+- 只读挂载 DMG、解压 ZIP 后分别校验签名和 bundle 版本，逐文件比较两个包内应用一致；包含应用图标、扩展资源、DMG Applications 快捷方式及双语安装说明。
+- 本机 Xcode 27.2 的 `lipo -verify_arch` 对单一有效输入报告错误；改用 `lipo -archs` 实际输出检查两个架构。macOS 27 的 `hdiutil` 提示命令弃用，但创建、校验和挂载均成功；保留该命令以兼容项目的 macOS 14+ 构建环境。
+- 此处证明安装包完整性，不代表其他 Mac 的 Gatekeeper 首次启动或 Widget 加载已验证。产物仍为 ad-hoc 签名，未经 Developer ID 签名或 Apple 公证。
