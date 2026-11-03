@@ -6,12 +6,13 @@ struct UsageWindow: Codable, Equatable, Sendable {
     let resetsAt: Double?
     var remaining: Double { max(0, min(100, 100 - usedPercent)) }
     var resetDate: Date? { resetsAt.map(Date.init(timeIntervalSince1970:)) }
-    var title: String {
-        guard let minutes = windowDurationMins else { return "额度周期" }
-        if minutes == 10080 { return "每周额度" }
-        if minutes % 1440 == 0 { return "\(minutes / 1440) 天额度" }
-        if minutes % 60 == 0 { return "\(minutes / 60) 小时额度" }
-        return "\(minutes) 分钟额度"
+    var title: String { localizedTitle() }
+    func localizedTitle(bundle: Bundle = UsageLocalization.bundle) -> String {
+        guard let minutes = windowDurationMins else { return UsageLocalization.text("额度周期", bundle: bundle) }
+        if minutes == 10080 { return UsageLocalization.text("每周额度", bundle: bundle) }
+        if minutes % 1440 == 0 { return UsageLocalization.format("%lld 天额度", minutes / 1440, bundle: bundle) }
+        if minutes % 60 == 0 { return UsageLocalization.format("%lld 小时额度", minutes / 60, bundle: bundle) }
+        return UsageLocalization.format("%lld 分钟额度", minutes, bundle: bundle)
     }
 }
 struct UsageBucket: Codable, Equatable, Sendable {
@@ -39,15 +40,16 @@ struct UsageSnapshot: Codable, Equatable, Sendable {
 }
 enum UsageFailure: String, Codable, Error, Sendable {
     case cliMissing, authentication, rateLimited, timeout, unavailable, incompatible, storage
-    var message: String {
+    var message: String { localizedMessage() }
+    func localizedMessage(bundle: Bundle = UsageLocalization.bundle) -> String {
         switch self {
-        case .cliMissing: return "未找到 Codex CLI，请在设置中选择可执行文件。"
-        case .authentication: return "Codex 登录已失效，请在 Codex 中恢复登录后重试。"
-        case .rateLimited: return "查询被限流，请稍后重试。"
-        case .timeout: return "查询超时，请检查网络后重试。"
-        case .unavailable: return "暂时无法读取额度，请检查网络与 Codex 状态。"
-        case .incompatible: return "Codex 返回了无法识别的数据，请检查 CLI 版本。"
-        case .storage: return "本地缓存无法读写，请检查目录权限。"
+        case .cliMissing: return UsageLocalization.text("未找到 Codex CLI，请在设置中选择可执行文件。", bundle: bundle)
+        case .authentication: return UsageLocalization.text("Codex 登录已失效，请在 Codex 中恢复登录后重试。", bundle: bundle)
+        case .rateLimited: return UsageLocalization.text("查询被限流，请稍后重试。", bundle: bundle)
+        case .timeout: return UsageLocalization.text("查询超时，请检查网络后重试。", bundle: bundle)
+        case .unavailable: return UsageLocalization.text("暂时无法读取额度，请检查网络与 Codex 状态。", bundle: bundle)
+        case .incompatible: return UsageLocalization.text("Codex 返回了无法识别的数据，请检查 CLI 版本。", bundle: bundle)
+        case .storage: return UsageLocalization.text("本地缓存无法读写，请检查目录权限。", bundle: bundle)
         }
     }
 }

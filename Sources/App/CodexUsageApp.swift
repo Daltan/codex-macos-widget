@@ -25,7 +25,7 @@ struct CodexUsageApp: App {
                 }
         }.defaultSize(width: 400, height: 570).windowResizability(.contentSize)
         MenuBarExtra("Codex Usage", systemImage: "chart.bar.xaxis") {
-            Text(manager.state.snapshot == nil ? "尚未获取额度" : (manager.state.isStale() ? "额度数据已过期" : "额度已更新"))
+            Text(LocalizedStringKey(manager.state.snapshot == nil ? "尚未获取额度" : (manager.state.isStale() ? "额度数据已过期" : "额度已更新")))
             Button("刷新额度") { Task { await manager.refresh() } }.disabled(manager.state.isRefreshing)
             Button("显示监视器") { NSApp.activate(ignoringOtherApps: true); NSApp.windows.first?.makeKeyAndOrderFront(nil) }
             Divider()
@@ -41,7 +41,7 @@ struct MainView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("额度一览").font(.title2.bold())
-                    Text(manager.state.snapshot?.accountLabel ?? "本机 Codex 账号")
+                    Text(manager.state.snapshot?.accountLabel ?? UsageLocalization.text("本机 Codex 账号"))
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -56,12 +56,12 @@ struct MainView: View {
                 }
             }.frame(minHeight: 230, maxHeight: 440)
             HStack {
-                Label(manager.state.failure == .authentication ? "需要恢复登录" : (manager.state.snapshot != nil && manager.state.failure == nil ? "最近查询认证正常" : "等待验证认证"), systemImage: "lock.shield")
+                Label(LocalizedStringKey(manager.state.failure == .authentication ? "需要恢复登录" : (manager.state.snapshot != nil && manager.state.failure == nil ? "最近查询认证正常" : "等待验证认证")), systemImage: "lock.shield")
                     .font(.caption).foregroundStyle(.secondary)
                 Spacer()
                 Button {
                     Task { await manager.refresh() }
-                } label: { Label(manager.state.isRefreshing ? "刷新中…" : "刷新", systemImage: "arrow.clockwise") }
+                } label: { Label(LocalizedStringKey(manager.state.isRefreshing ? "刷新中…" : "刷新"), systemImage: "arrow.clockwise") }
                     .disabled(manager.state.isRefreshing)
             }
             Text("应用运行时每小时查询，唤醒后补查。小组件显示最近一次成功数据；系统决定其实际刷新时间。")

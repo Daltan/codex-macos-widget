@@ -22,10 +22,15 @@ assets = {}
 for path in sorted((root/'Sources').rglob('*.xcassets')):
     relative = str(path.relative_to(root))
     assets[relative] = add(relative, isa='PBXFileReference', lastKnownFileType='folder.assetcatalog', path=relative, sourceTree='<group>')
+localizations = []
+for path in sorted((root/'Sources/Core/Resources').glob('*.lproj/Localizable.strings')):
+    relative = str(path.relative_to(root))
+    localizations.append(add(relative, isa='PBXFileReference', lastKnownFileType='text.plist.strings', name=path.parent.stem, path=relative, sourceTree='<group>'))
+localized_strings = add('localized-strings', isa='PBXVariantGroup', children=localizations, name='Localizable.strings', sourceTree='<group>')
 app = add('app-product', isa='PBXFileReference', explicitFileType='wrapper.application', path='Codex Usage.app', sourceTree='BUILT_PRODUCTS_DIR')
 widget = add('widget-product', isa='PBXFileReference', explicitFileType='wrapper.app-extension', path='CodexUsageWidget.appex', sourceTree='BUILT_PRODUCTS_DIR')
 products = add('products', isa='PBXGroup', children=[app,widget], name='Products', sourceTree='<group>')
-group = add('root', isa='PBXGroup', children=list(files.values())+list(assets.values())+[products], sourceTree='<group>')
+group = add('root', isa='PBXGroup', children=list(files.values())+list(assets.values())+[localized_strings,products], sourceTree='<group>')
 def configs(name, settings):
     refs=[]
     for mode in ['Debug','Release']:
@@ -47,6 +52,7 @@ for name, folder, product, bundle, product_type in [('CodexUsage','App',app,'com
     settings={'PRODUCT_NAME':'Codex Usage' if folder=='App' else name,'PRODUCT_BUNDLE_IDENTIFIER':bundle,'INFOPLIST_FILE':f'Config/{folder}-Info.plist','CODE_SIGN_ENTITLEMENTS':f'Config/{folder}.entitlements','GENERATE_INFOPLIST_FILE':'NO','LD_RUNPATH_SEARCH_PATHS':['$(inherited)','@executable_path/../Frameworks'],'SWIFT_EMIT_LOC_STRINGS':'YES'}
     if folder=='Widget': settings.update({'APPLICATION_EXTENSION_API_ONLY':'YES','SKIP_INSTALL':'YES','SWIFT_ACTIVE_COMPILATION_CONDITIONS':'$(inherited) WIDGET_EXTENSION'})
     resources = [add(name+path, isa='PBXBuildFile', fileRef=ref) for path, ref in assets.items() if '/Core/' in path or f'/{folder}/' in path]
+    resources.append(add(name+'localized-strings', isa='PBXBuildFile', fileRef=localized_strings))
     resource_phase = add(name+'resources', isa='PBXResourcesBuildPhase', buildActionMask=2147483647, files=resources, runOnlyForDeploymentPostprocessing=0)
     if folder == 'App': settings['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
     phases=[phase,frameworks,resource_phase]; deps=[]
@@ -56,7 +62,7 @@ for name, folder, product, bundle, product_type in [('CodexUsage','App',app,'com
         proxy=add('widget-proxy',isa='PBXContainerItemProxy',containerPortal=ident('project'),proxyType=1,remoteGlobalIDString=ident('CodexUsageWidgettarget'),remoteInfo='CodexUsageWidget')
         deps.append(add('widget-dep',isa='PBXTargetDependency',target=ident('CodexUsageWidgettarget'),targetProxy=proxy))
     targets.append(add(name+'target',isa='PBXNativeTarget',buildConfigurationList=configs(name,settings),buildPhases=phases,buildRules=[],dependencies=deps,name=name,productName=name,productReference=product,productType=product_type))
-add('project',isa='PBXProject',attributes={'LastUpgradeCheck':'2720','BuildIndependentTargetsInParallel':'YES'},buildConfigurationList=projectconfigs,compatibilityVersion='Xcode 14.0',developmentRegion='zh-Hans',hasScannedForEncodings=0,knownRegions=['en','zh-Hans','Base'],mainGroup=group,productRefGroup=products,projectDirPath='',projectRoot='',targets=targets)
+add('project',isa='PBXProject',attributes={'LastUpgradeCheck':'2720','BuildIndependentTargetsInParallel':'YES'},buildConfigurationList=projectconfigs,compatibilityVersion='Xcode 14.0',developmentRegion='en',hasScannedForEncodings=0,knownRegions=['en','zh-Hans','Base'],mainGroup=group,productRefGroup=products,projectDirPath='',projectRoot='',targets=targets)
 project=root/'CodexUsage.xcodeproj'; project.mkdir(exist_ok=True)
 (project/'project.pbxproj').write_text('// !$*UTF8*$!\n'+render({'archiveVersion':1,'classes':{},'objectVersion':56,'objects':objects,'rootObject':ident('project')})+'\n')
 schemes=project/'xcshareddata/xcschemes';schemes.mkdir(parents=True,exist_ok=True)

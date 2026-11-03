@@ -15,7 +15,7 @@ final class UsageTests: XCTestCase {
         XCTAssertEqual(response.buckets.map(\.limitId), ["codex", "other"])
         XCTAssertEqual(response.buckets[0].windows.count, 1)
         XCTAssertEqual(response.buckets[0].windows[0].remaining, 63)
-        XCTAssertEqual(response.buckets[0].windows[0].title, "每周额度")
+        XCTAssertEqual(response.buckets[0].windows[0].windowDurationMins, 10080)
         XCTAssertEqual(response.buckets[1].windows[0].remaining, 0)
     }
     func testFreshnessExpiresAtHourAndReset() {

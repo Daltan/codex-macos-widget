@@ -48,12 +48,12 @@ struct UsageCard: View {
                     Text("更多周期见应用").font(.caption2).foregroundStyle(.secondary)
                 }
                 HStack(spacing: 4) {
-                    Text(state.isStale(at: now) ? "数据已过期" : "更新于")
+                    Text(LocalizedStringKey(state.isStale(at: now) ? "数据已过期" : "更新于"))
                     Text(snapshot.fetchedAt, style: .time)
                 }.font(.caption2).foregroundStyle(state.isStale(at: now) ? Color.orange : Color.secondary)
             } else {
                 Text("—").font(.largeTitle)
-                Text(state.isRefreshing(at: now) ? "正在读取真实额度…" : "打开应用以读取额度")
+                Text(LocalizedStringKey(state.isRefreshing(at: now) ? "正在读取真实额度…" : "打开应用以读取额度"))
                     .font(.caption).foregroundStyle(.secondary)
             }
             if let failure = state.failure {

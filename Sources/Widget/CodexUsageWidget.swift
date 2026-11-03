@@ -48,7 +48,7 @@ struct WidgetView: View {
             if windows.isEmpty {
                 Spacer(minLength: 0)
                 Text("—").font(.title)
-                Text(entry.state.snapshot == nil ? "打开应用读取额度" : "接口未提供周期额度").font(.caption)
+                Text(LocalizedStringKey(entry.state.snapshot == nil ? "打开应用读取额度" : "接口未提供周期额度")).font(.caption)
                 Spacer(minLength: 0)
             } else {
                 let columns = family == .systemSmall || windows.count == 1 ? 1 : 2
@@ -79,11 +79,11 @@ struct WidgetView: View {
                 Spacer(minLength: 0)
             }
             if let failure = entry.state.failure {
-                Text(failure == .authentication ? "登录失效 · 打开应用" : "更新失败 · 数据已过期")
+                Text(LocalizedStringKey(failure == .authentication ? "登录失效 · 打开应用" : "更新失败 · 数据已过期"))
                     .font(.system(size: 10)).foregroundStyle(.orange).lineLimit(1)
             } else if let snapshot = entry.state.snapshot {
                 HStack(spacing: 3) {
-                    Text(entry.state.isStale(at: entry.date) ? "已过期" : "更新")
+                    Text(LocalizedStringKey(entry.state.isStale(at: entry.date) ? "已过期" : "更新"))
                     Text(snapshot.fetchedAt, style: .time)
                     if windows.count > visibleCount { Text("· 更多见应用") }
                 }.font(.system(size: 10)).foregroundStyle(entry.state.isStale(at: entry.date) ? Color.orange : Color.secondary).lineLimit(1)

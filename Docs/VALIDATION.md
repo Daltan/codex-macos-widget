@@ -73,3 +73,14 @@
 - 小/中 × 明/暗共 4 张原生 `NSHostingView` 布局渲染图在 `Docs/images/`，使用本机最近成功快照，无账号标识。预览工具使用源 WidgetView，单独注入 family，并在 WidgetKit 外移除 containerBackground；这不是桌面宿主截图，也不验证系统壁纸着色、刷新交互或所有辅助功能字号。
 - 本轮电脑使用工具返回的是缩小倾斜窗口缩略图，不能据此证明桌面组件的像素级显示。新版本桌面宿主中的完整明暗尺寸验收仍需人工补充；不得把此前 build 2 的桌面验收直接当作 build 3 证据。
 - 英文首页与中文 README、贡献指南、安全说明、双语 Issue/PR 模板已补齐。GitHub About 双语简介及 codex / macos / swiftui / widgetkit / openai / usage-monitor / desktop-widget 主题已保存并通过公开 API 回读。
+
+## 中英自动本地化（2026-11-04，build 4）
+
+- 主应用和 Widget Extension 均打包 `en.lproj/Localizable.strings` 与 `zh-Hans.lproj/Localizable.strings`，各 52 项；开发语言与 bundle 回退语言为英文。使用 macOS 原生语言协商，不写入系统语言或 Codex 配置。
+- 覆盖主窗口、菜单、设置、动态状态、周期标题、七类错误、百分比辅助标签、Widget 描述和刷新 App Intent。服务器返回的配额名称与账号标识保持原文。
+- 条件生成的 SwiftUI 文案明确转为 `LocalizedStringKey`；模型仅持久化原始数值和错误枚举，显示时读取当前语言资源，避免缓存旧语言。
+- 使用进程参数 `-AppleLanguages '(en)' -AppleLocale en_US` 启动真实应用，AX 回读确认 Usage overview / Weekly limit / Refresh / Settings、英文设置说明及百分比辅助标签；再以 `'(zh-Hans)' / zh_CN` 重启，确认中文恢复。没有修改全局语言偏好。
+- 8 张小/中 × 明/暗 × 中/英布局图位于 `Docs/images/localization/`。使用实际 WidgetView、最近成功快照，并移除账号信息；离线 NSHostingView 宿主注入尺寸并替代 WidgetKit 背景。这些是布局渲染图，不是桌面截图，不证明壁纸着色或系统语言变更后的实际时间线刷新延迟。
+- 真实应用截图工具仍只返回缩小窗口缩略图；通过 AX 核对文字，通过原生布局渲染核对组件布局。没有实际切换全局系统语言，因此“系统语言变更后桌面宿主自动重载”的端到端验收仍待补充。
+- XCTest 共 11 项通过，新增翻译键完整性、全部错误中英转换及周期缓存往返后语言转换；编译器提取的所有中文 UI 键均能在资源表中找到。
+- Release 构建、签名验证、Universal DMG/ZIP 打包通过。语言变更后需重启主应用；WidgetKit 可能沿用旧时间线，等待重载或移除后重新添加。不会把 build 3 的公开 Release 描述为已包含本地化。

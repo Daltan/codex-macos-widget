@@ -15,7 +15,7 @@
 
 Know where your quota stands before your next coding session. Keep a compact widget on your desktop, inspect all returned windows in the app, and refresh using your existing Codex login.
 
-> Independent community project. Not affiliated with or endorsed by OpenAI. The app interface is currently Chinese; documentation is available in English and Chinese.
+> Independent community project. Not affiliated with or endorsed by OpenAI. The app and widgets follow the system language: English or Simplified Chinese. Documentation is also bilingual.
 
 ## Preview
 
@@ -44,6 +44,10 @@ The large widget has been retired: a single returned quota window did not justif
 **[Download the latest DMG or ZIP](https://github.com/Daltan/codex-macos-widget/releases/latest)** — no Xcode required. Open the DMG and drag **Codex Usage.app** to **Applications**, then launch the installed app. Requires macOS 14+ and Codex CLI signed in with a ChatGPT account.
 
 The downloadable build is **ad-hoc signed and not notarized**. First launch may be blocked by macOS; see the [bilingual installation guide](Docs/INSTALL.txt) for Apple’s supported opening flow and known limitations. Other-Mac installation and Intel hardware have not been verified.
+
+### Language
+
+The app, menu bar, widgets, settings, errors and refresh action support English and Simplified Chinese using native macOS localization. They follow the system’s preferred language; other unsupported languages fall back to English. After changing the system language, relaunch the app. WidgetKit may keep an existing timeline until it reloads; if needed, remove and re-add the widget after the language change. No separate language toggle or system setting changes are required by this app.
 
 ### Build from source
 
@@ -153,7 +157,7 @@ git diff --check
 
 Changed target membership or build settings? Update `Scripts/generate-project.py` and commit the regenerated project. Test data stays in isolated tests; production placeholders remain empty. See [validation evidence and limitations](Docs/VALIDATION.md) and the [contributing guide](CONTRIBUTING.md).
 
-Useful contributions include CLI compatibility fixes, accessibility improvements, English UI localization, and installation reports from other Mac models. Future candidates include distribution signing and real historical data; these are not implemented features.
+Useful contributions include CLI compatibility fixes, accessibility improvements, localization improvements, and installation reports from other Mac models. Future candidates include distribution signing and real historical data; these are not implemented features.
 
 If this saves you a window switch, **give it a Star** so other Codex developers can find it. Bug reports and small, well-tested pull requests help even more.
 
