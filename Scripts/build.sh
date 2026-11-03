@@ -6,3 +6,4 @@ xcodebuild -project CodexUsage.xcodeproj -scheme CodexUsage -configuration Relea
   -derivedDataPath .build/DerivedData build
 codesign --verify --deep --strict '.build/DerivedData/Build/Products/Release/Codex Usage.app'
 echo "Built: $PWD/.build/DerivedData/Build/Products/Release/Codex Usage.app"
+Scripts/package-release.sh

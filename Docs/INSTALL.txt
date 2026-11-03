@@ -1,0 +1,46 @@
+Codex Usage — 安装 / Installation
+
+要求 / Requirements
+macOS 14 或更高版本；Apple Silicon 或 Intel Mac。
+需要已使用 ChatGPT 账号登录的 Codex CLI。无需 Xcode 或 API Key。
+macOS 14 or later, Apple Silicon or Intel. Requires Codex CLI signed in
+with a ChatGPT account. Xcode and an API key are not required.
+
+安装 / Install
+1. 打开 DMG，将 Codex Usage.app 拖入 Applications。
+   Open the DMG and drag Codex Usage.app into Applications.
+   ZIP 用户：解压后将应用移到 Applications。
+   ZIP users: extract and move the app to Applications.
+2. 打开已安装应用。找不到 CLI 时在应用设置中选择 Codex 可执行文件。
+   Open the installed app. Select the Codex executable in Settings if needed.
+3. 桌面右键 → 编辑小组件 → 搜索 Codex Usage，添加所需尺寸。
+   Right-click the desktop → Edit Widgets → search for Codex Usage.
+4. 升级前退出旧版应用，再替换应用文件。
+   Quit the previous version before replacing it with an update.
+
+签名 / Signing
+本版本仅使用 ad-hoc 临时签名，未使用 Developer ID 签名、未经 Apple 公证。
+macOS 可能阻止首次打开。如信任来源，可在尝试打开后前往
+系统设置 → 隐私与安全性 → 仍要打开。不要关闭系统安全保护。
+This build is ad-hoc signed, without Developer ID signing or Apple notarization.
+macOS may block first launch. If you trust the source, after attempting to open
+it use System Settings → Privacy & Security → Open Anyway.
+Do not disable system security protections.
+
+已验证本机 Apple Silicon 构建；包含 Intel 架构，但未做 Intel 实机测试。
+尚未验证其他 Mac 的首次安装与小组件加载，系统可能限制临时签名扩展。
+Built and checked locally on Apple Silicon. Intel code is included but has not
+been tested on Intel hardware. First installation and widget loading on other
+Macs have not been verified; macOS may restrict ad-hoc signed extensions.
+
+应用不会自动安装 LaunchAgent。可选后台刷新与排障说明请查看仓库 README。
+No LaunchAgent is installed automatically. See the repository README for
+optional background refresh and troubleshooting.
+
+下载校验 / Verify downloads
+在下载文件所在目录执行 / Run in the download directory:
+shasum -a 256 -c SHA256SUMS.txt
+该命令需要同时下载 DMG、ZIP、INSTALL.txt 和 SHA256SUMS.txt。
+This command requires the DMG, ZIP, INSTALL.txt and SHA256SUMS.txt together.
+
+https://github.com/Daltan/codex-macos-widget
