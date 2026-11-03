@@ -102,12 +102,12 @@ The adapter was verified with Codex CLI **0.165.0**. This is a client protocol, 
 | Trigger | Behavior |
 | --- | --- |
 | App launch | Queries immediately, subject to duplicate-request suppression. |
-| App running | Checks every minute whether an hourly query is due; checks again after wake. |
-| WidgetKit | Requests hourly cache reloads; macOS may delay rendering. |
-| Manual refresh | Opens the app, disables the button while busy, and requests timeline reload on completion. |
+| App running | Checks every 30 seconds whether a 5-minute query is due; checks again after wake. Keep the app running. |
+| WidgetKit | Requests cache reloads every 5 minutes; macOS may delay rendering. |
+| Manual refresh | The widget opens `codexusage://refresh` directly. The app queries and reloads the widget only after saving the result. |
 | Optional LaunchAgent | Runs the app with `--refresh-once` every 3,600 seconds while logged in. |
 
-Sleep, shutdown, logout, offline periods, and system budgets can delay updates. Neither background queries nor WidgetKit guarantee an exact hourly on-screen refresh. Data becomes stale after one hour, after a returned reset time, or after a failed query. Old values are never silently reset to zero. Last success and last attempt are stored separately.
+Sleep, shutdown, logout, offline periods, and system budgets can delay updates. Neither background queries nor WidgetKit guarantee an exact on-screen refresh time. Data becomes stale after one hour, after a returned reset time, or after a failed query. Old values are never silently reset to zero. Last success and last attempt are stored separately.
 
 ### Optional background refresh
 

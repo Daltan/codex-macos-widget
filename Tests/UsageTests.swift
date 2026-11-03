@@ -56,6 +56,74 @@ final class UsageTests: XCTestCase {
         XCTAssertEqual(UsageRefreshManager(store: store, provider: FailingProvider()).state, manager.state)
     }
     @MainActor
+    func testReloadObservesCompletedPersistedSnapshotOnly() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = UsageStore(directory: directory)
+        let previous = snapshot(at: .now.addingTimeInterval(-600)), updated = snapshot()
+        try store.save(UsageState(snapshot: previous))
+        var reloaded: [UsageState] = []
+        let manager = UsageRefreshManager(store: store, provider: CountingProvider(value: updated),
+                                          reloadWidgets: { reloaded.append(store.load()) })
+        await manager.refresh()
+        XCTAssertEqual(reloaded.count, 1)
+        XCTAssertEqual(reloaded.first?.snapshot, updated)
+        XCTAssertNil(reloaded.first?.refreshingSince)
+        XCTAssertNil(reloaded.first?.failure)
+        // Rapid manual requests still re-deliver the final cache to a stale desktop.
+        await manager.refresh()
+        XCTAssertEqual(reloaded.count, 2)
+        XCTAssertEqual(reloaded.last, reloaded.first)
+    }
+
+    @MainActor
+    func testFailedQueryReloadsPreservedSnapshotWithError() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = UsageStore(directory: directory), previous = snapshot()
+        try store.save(UsageState(snapshot: previous))
+        var reloaded: [UsageState] = []
+        let manager = UsageRefreshManager(store: store, provider: FailingProvider(),
+                                          reloadWidgets: { reloaded.append(store.load()) })
+        await manager.refresh()
+        XCTAssertEqual(reloaded.count, 1)
+        XCTAssertEqual(reloaded.first?.snapshot, previous)
+        XCTAssertEqual(reloaded.first?.failure, .authentication)
+        XCTAssertNil(reloaded.first?.refreshingSince)
+    }
+
+    @MainActor
+    func testAutomaticRefreshAtFiveMinuteBoundary() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = UsageStore(directory: directory), now = Date()
+        let provider = CountingProvider(value: snapshot())
+        try store.save(UsageState(snapshot: snapshot(), lastAttempt: now.addingTimeInterval(-300)))
+        let manager = UsageRefreshManager(store: store, provider: provider, reloadWidgets: {})
+        await manager.refreshIfDue(now: now.addingTimeInterval(-1))
+        let before = await provider.count
+        XCTAssertEqual(before, 0)
+        await manager.refreshIfDue(now: now)
+        let after = await provider.count
+        XCTAssertEqual(after, 1)
+    }
+
+    @MainActor
+    func testRateLimitCooldownDoesNotQueryAgain() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = UsageStore(directory: directory)
+        let provider = CountingProvider(value: snapshot())
+        try store.save(UsageState(snapshot: snapshot(), lastAttempt: .now.addingTimeInterval(-60),
+                                  failure: .rateLimited))
+        let manager = UsageRefreshManager(store: store, provider: provider, reloadWidgets: {})
+        await manager.refresh()
+        let count = await provider.count
+        XCTAssertEqual(count, 0)
+        XCTAssertEqual(store.load().failure, .rateLimited)
+    }
+
+    @MainActor
     func testAutomaticDueAndDedupe() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }

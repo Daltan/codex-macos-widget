@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import OSLog
 
 struct UsageEntry: TimelineEntry {
     let date: Date
@@ -12,6 +13,8 @@ struct UsageTimelineProvider: TimelineProvider {
     }
     func getTimeline(in context: Context, completion: @escaping (Timeline<UsageEntry>) -> Void) {
         let state = UsageStore().load(), now = Date()
+        Logger(subsystem: "com.daltan.codexusage", category: "timeline").notice(
+            "Timeline loaded snapshot timestamp=\(state.snapshot?.fetchedAt.timeIntervalSince1970 ?? 0, privacy: .public)")
         var dates = [now]
         if let started = state.refreshingSince, started.addingTimeInterval(50) > now {
             dates.append(started.addingTimeInterval(50))
@@ -24,7 +27,7 @@ struct UsageTimelineProvider: TimelineProvider {
             if let reset = window.resetDate, reset > now, reset < now.addingTimeInterval(3600) { dates.append(reset) }
         }
         completion(Timeline(entries: dates.sorted().map { UsageEntry(date: $0, state: state) },
-                            policy: .after(now.addingTimeInterval(3600))))
+                            policy: .after(now.addingTimeInterval(UsageStore.refreshInterval))))
     }
 }
 struct WidgetView: View {
@@ -42,8 +45,8 @@ struct WidgetView: View {
                 }.font(.headline)
                 Spacer(minLength: 2)
                 if entry.state.isRefreshing(at: entry.date) { ProgressView().controlSize(.mini) }
-                Button(intent: RefreshUsageIntent()) { Image(systemName: "arrow.clockwise").font(.caption) }
-                    .buttonStyle(.plain).disabled(entry.state.isRefreshing(at: entry.date)).accessibilityLabel("刷新额度")
+                Link(destination: UsageStore.refreshURL) { Image(systemName: "arrow.clockwise").font(.caption) }
+                    .buttonStyle(.plain).accessibilityLabel("刷新额度")
             }
             if windows.isEmpty {
                 Spacer(minLength: 0)
@@ -90,7 +93,7 @@ struct WidgetView: View {
             }
         }
         .containerBackground(.background, for: .widget)
-        .widgetURL(URL(string: "codexusage://refresh"))
+        .widgetURL(UsageStore.refreshURL)
     }
 }
 @main

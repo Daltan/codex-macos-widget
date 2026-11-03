@@ -64,7 +64,7 @@ struct MainView: View {
                 } label: { Label(LocalizedStringKey(manager.state.isRefreshing ? "刷新中…" : "刷新"), systemImage: "arrow.clockwise") }
                     .disabled(manager.state.isRefreshing)
             }
-            Text("应用运行时每小时查询，唤醒后补查。小组件显示最近一次成功数据；系统决定其实际刷新时间。")
+            Text("请保持应用运行：每 5 分钟查询，唤醒后补查。退出应用会停止自动查询；小组件显示最近成功数据，刷新时间由系统调度。")
                 .font(.caption2).foregroundStyle(.secondary)
             if showSettings {
                 Divider()

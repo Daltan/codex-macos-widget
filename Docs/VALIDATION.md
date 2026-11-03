@@ -98,3 +98,13 @@
 - 源提交 `f7e5d262289a76bc065f4fb3714653533fe9f49d`；annotated tag 指向同一提交。11 项 Swift 测试与 6 项 Python 测试通过，四个附件在草稿和公开下载阶段均校验通过。
 - 随后实际重跑 `publish`，复用同一源提交的冻结产物；Release ID、发布时间、附件 ID、散列及上传时间全部保持一致。此项验证重复执行不生成新版本、不覆盖既有附件；未人为制造所有可能的网络中断。
 - 可公开的验证回执见 `Docs/ReleaseNotes/v1.1.0-verification.json`；详细运行日志仍只保存在忽略的 `.build/release-loop/v1.1.0/`。
+
+## 桌面刷新修复（2026-11-04）
+
+- 故障证据：原版在 02:11–02:12 的 `chronod` 日志出现 `linkd openApplicationAndConnect failed`、30 秒 interaction watchdog，随后记录 timeline `entry is paused`，应用的重载请求被延后或跳过。截图中应用与桌面快照不一致，不能归咎于缓存读取权限。
+- 组件刷新入口改为 `Link` / `widgetURL` 直接打开 `codexusage://refresh`，绕开失败的 App Intent 连接。应用保留并发锁、重复查询抑制和限流冷却；短时间手动重试仍可请求重新显示缓存。
+- 应用每 30 秒检查五分钟查询周期，定时器加入 common run-loop modes；唤醒后补查。组件每五分钟请求重新读取缓存。查询开始时不再发出旧快照重载，只有最终结果成功落盘后才通知 WidgetKit。
+- 15 项 XCTest 通过，新增最终快照先保存再重载、失败保留快照并发布错误状态、五分钟到期边界、限流冷却四项回归覆盖。Release 双架构构建、签名及 DMG/ZIP 校验通过；`git diff --check`、凭据扫描通过。
+- 安装候选构建后，仅终止本工具旧扩展进程以载入新二进制，未重启系统 Widget 宿主、修改系统/Codex 设置或安装 LaunchAgent。02:15:25 打开实际刷新 URL；02:15:28 查询成功，扩展读取同一成功快照时间戳，02:15:29 `chronod` 确认 systemSmall 和 systemMedium 均 `on local reload: succeeded`。
+- 验证边界：上述为真实 WidgetKit 宿主日志，强于离线渲染，但不等于逐像素截图或实际点按右上角的完整验收。电脑使用工具仅暴露日历组件窗口，无法定位 Codex 桌面控件；未生成冒充桌面证据的截图，未切换系统明暗设置。实际右上角点击及两种外观的视觉验收仍需补充。
+- 退出应用会停止应用内自动查询；可关闭窗口保留菜单栏进程。系统仍决定 WidgetKit 实际显示时刻，五分钟是查询目标而非屏幕更新保证。可选的既有 hourly LaunchAgent 行为保持原样。

@@ -3,6 +3,8 @@ import Darwin
 import OSLog
 
 struct UsageStore: Sendable {
+    static let refreshInterval: TimeInterval = 300
+    static let refreshURL = URL(string: "codexusage://refresh")!
     static let widgetKind = "CodexUsageWidget"
     let directory: URL
     init(directory: URL? = nil) {

@@ -106,12 +106,12 @@ Widget 刷新按钮 → App Intent → 主应用查询
 | 机制 | 行为与限制 |
 | --- | --- |
 | 应用启动 | 立即查询；短时间重复启动受去重限制 |
-| 应用运行 | 每分钟检查是否距上次尝试满 1 小时；唤醒后补查 |
-| WidgetKit | 请求每小时重新加载缓存；系统可延后，不承诺准点刷新 |
+| 应用运行 | 每 30 秒检查是否距上次尝试满 5 分钟；唤醒后补查，需保持应用运行 |
+| WidgetKit | 请求每 5 分钟重新加载缓存；系统可延后，不承诺准点刷新 |
 | LaunchAgent（可选） | 用户登录期间由 launchd 每 3600 秒启动一次查询，不依赖主窗口是否打开 |
-| 手动刷新 | 启动主应用查询，进行中禁用按钮，完成后请求刷新小组件 |
+| 手动刷新 | 组件通过 `codexusage://refresh` 直接打开主应用查询，结果保存成功后请求重载组件 |
 
-LaunchAgent 让查询不依赖主应用常驻，但睡眠、关机、注销、断网及系统资源限制仍可能延迟执行；WidgetKit 的屏幕渲染也有自己的预算。没有任何机制能保证这些情况下仍严格每小时显示新数据。参考 [Apple WidgetKit 刷新说明](https://developer.apple.com/documentation/widgetkit/keeping-a-widget-up-to-date/)。
+LaunchAgent 让查询不依赖主应用常驻，但睡眠、关机、注销、断网及系统资源限制仍可能延迟执行；WidgetKit 的屏幕渲染也有自己的预算。没有任何机制能保证这些情况下仍严格准点显示新数据。参考 [Apple WidgetKit 刷新说明](https://developer.apple.com/documentation/widgetkit/keeping-a-widget-up-to-date/)。
 
 超过一小时、已过额度重置时间，或最新查询失败时，旧快照明确标记过期，不将历史额度自动归零或宣称已经重置。最后成功时间与最后尝试时间分开保存。不会把失败覆盖成 0% 使用量。
 

@@ -27,7 +27,7 @@
 "等待验证认证" = "Waiting to verify sign-in";
 "刷新中…" = "Refreshing…";
 "刷新" = "Refresh";
-"应用运行时每小时查询，唤醒后补查。小组件显示最近一次成功数据；系统决定其实际刷新时间。" = "Checks hourly while the app is running and catches up after wake. Widgets show the last successful data; macOS controls their refresh timing.";
+"请保持应用运行：每 5 分钟查询，唤醒后补查。退出应用会停止自动查询；小组件显示最近成功数据，刷新时间由系统调度。" = "Keep the app running: usage is checked every 5 minutes and after wake. Quitting stops automatic queries; macOS schedules widget updates of the latest successful data.";
 "数据来自官方 Codex app-server，只读复用现有登录。" = "Read-only usage from the official Codex app-server, using your existing sign-in.";
 "选择 Codex 可执行文件…" = "Choose Codex executable…";
 "桌面右键 → 编辑小组件 → 搜索 Codex Usage。刷新按钮会打开本应用。" = "Right-click the desktop → Edit Widgets → search for Codex Usage. Refresh opens this app.";
