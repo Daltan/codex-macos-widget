@@ -40,6 +40,12 @@
 
 ## 构建与安装
 
+**[下载最新 DMG 或 ZIP](https://github.com/Daltan/codex-macos-widget/releases/latest)**，无需安装 Xcode。打开 DMG，将 **Codex Usage.app** 拖入 **Applications** 后启动。需要 macOS 14+ 和已使用 ChatGPT 账号登录的 Codex CLI。
+
+下载版采用 **ad-hoc 临时签名，未经 Apple 公证**，首次打开可能被 macOS 阻止。请参阅[双语安装说明](Docs/INSTALL.txt)中的系统打开方式与限制；其他 Mac 的首次安装及 Intel 实机尚未验证。
+
+### 从源码构建
+
 要求 macOS 14+、完整 Xcode、已登录 ChatGPT 账号的 Codex CLI。Apple Silicon 优先，项目也构建 Intel slice。无第三方库、数据库或服务器，无需 API Key。
 
 ```sh
@@ -47,9 +53,11 @@ Scripts/build.sh
 Scripts/install-app.sh
 ```
 
+构建还会自动在 `.build/releases/` 生成通用架构 DMG、ZIP、安装说明和 SHA-256 校验文件，详见[打包与发布说明](Docs/RELEASING.md)。
+
 应用位于 `~/Applications/Codex Usage.app`。首次打开后，在桌面右键 → 编辑小组件 → 搜索 **Codex Usage**，选择尺寸添加。所有尺寸都有刷新按钮；点击会打开主应用，通过现有 Codex 登录重新查询。首次刷新可能需要数秒。
 
-直接打开 `CodexUsage.xcodeproj`，选择 `CodexUsage` scheme 也可构建。默认本地 ad-hoc 签名，不需要导入证书；没有公证，构建产物仅用于本机。构建脚本用 `DEVELOPER_DIR` 选择 Xcode，不更改系统 `xcode-select`。
+直接打开 `CodexUsage.xcodeproj`，选择 `CodexUsage` scheme 也可构建。默认本地 ad-hoc 签名，不需要导入证书；没有公证，其他 Mac 的首次安装与小组件加载尚未验证。构建脚本用 `DEVELOPER_DIR` 选择 Xcode，不更改系统 `xcode-select`。
 
 找不到 CLI 时，在主应用右上角设置中选择 Codex 可执行文件。默认查找 Homebrew 与应用内 CLI。应用使用运行环境中的 `CODEX_HOME`（如设置），否则由 Codex 自行定位；Finder/LaunchAgent 不继承 shell 自定义环境，使用默认 Codex 登录。自定义环境使用者应自行保持各启动方式一致。
 

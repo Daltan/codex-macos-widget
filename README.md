@@ -41,6 +41,12 @@ The large widget has been retired: a single returned quota window did not justif
 
 ## Quick start
 
+**[Download the latest DMG or ZIP](https://github.com/Daltan/codex-macos-widget/releases/latest)** — no Xcode required. Open the DMG and drag **Codex Usage.app** to **Applications**, then launch the installed app. Requires macOS 14+ and Codex CLI signed in with a ChatGPT account.
+
+The downloadable build is **ad-hoc signed and not notarized**. First launch may be blocked by macOS; see the [bilingual installation guide](Docs/INSTALL.txt) for Apple’s supported opening flow and known limitations. Other-Mac installation and Intel hardware have not been verified.
+
+### Build from source
+
 Requirements: **macOS 14+**, full **Xcode** to build from source, and **Codex CLI signed in with a ChatGPT account**. Apple Silicon is tested locally; the build also includes Intel code, but Intel hardware has not been tested.
 
 ```sh
@@ -49,6 +55,8 @@ cd codex-macos-widget
 Scripts/build.sh
 Scripts/install-app.sh
 ```
+
+`Scripts/build.sh` also produces a Universal DMG, ZIP, installation guide and SHA-256 checksums under `.build/releases/`. See [release packaging](Docs/RELEASING.md).
 
 1. Open `~/Applications/Codex Usage.app` and let the initial query complete.
 2. Right-click your desktop → **Edit Widgets** → search for **Codex Usage**.
