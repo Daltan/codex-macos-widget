@@ -7,7 +7,8 @@ struct UsageCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: compact ? 10 : 16) {
             HStack {
-                Image(systemName: "terminal.fill").foregroundStyle(.mint)
+                Image("CodexMark").resizable().scaledToFit()
+                    .frame(width: 20, height: 20).foregroundStyle(.primary).accessibilityHidden(true)
                 Text("Codex").font(.headline)
                 Spacer()
                 if state.isRefreshing(at: now) { ProgressView().controlSize(.mini) }
