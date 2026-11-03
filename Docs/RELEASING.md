@@ -6,11 +6,12 @@
 
 前提：完整 Xcode、Python 3、Git，以及已登录的 GitHub CLI。首次登录只需执行 `gh auth login`；不需要把 Token 发到聊天。仓库日常只保留 `main`。
 
-先提交实现代码，再由 Agent 写好中英发布说明：
+先提交实现代码，再由 Agent 在 Git 忽略的 `.tmp/` 中写好中英发布说明。本地草稿、宣传素材等临时输出也统一放在 `.tmp/`，不进入发布；构建产物和断点恢复状态仍保存在 `.build/`：
 
 ```sh
+mkdir -p .tmp
 python3 Scripts/release.py plan
-python3 Scripts/release.py run --bump minor --notes-file .build/next-release.md
+python3 Scripts/release.py run --bump minor --notes-file .tmp/next-release.md
 ```
 
 `patch` 用于修复，`minor` 用于兼容的新功能，`major` 用于破坏性变化。发布工具将当前 `1.0` 这种历史版本正规化为三段版本；例如 minor 升级为 `1.1.0`。主应用与扩展的版本、build 号始终一起变更。build 每次发布准备时递增一次。
@@ -41,7 +42,7 @@ python3 Scripts/release.py publish
 只准备版本、不发布时可用：
 
 ```sh
-python3 Scripts/release.py prepare --bump patch --notes-file .build/next-release.md
+python3 Scripts/release.py prepare --bump patch --notes-file .tmp/next-release.md
 ```
 
 ## 普通构建与分发边界

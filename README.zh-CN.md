@@ -139,7 +139,7 @@ Scripts/launch-agent.sh uninstall
 
 ## 自动发版
 
-Agent 按 [AGENTS.md](AGENTS.md) 完成提交到交付的闭环。实现提交后，`python3 Scripts/release.py run --bump minor --notes-file .build/next-release.md` 自动管理版本、测试、构建、tag、草稿上传、公开发布与下载回验；中断后用 `publish` 继续。完整步骤见[发布工作流](Docs/RELEASING.md)。
+Agent 按 [AGENTS.md](AGENTS.md) 完成提交到交付的闭环。实现提交后，`python3 Scripts/release.py run --bump minor --notes-file .tmp/next-release.md` 自动管理版本、测试、构建、tag、草稿上传、公开发布与下载回验；中断后用 `publish` 继续。完整步骤见[发布工作流](Docs/RELEASING.md)。
 
 ## 验证与仓库安全
 
