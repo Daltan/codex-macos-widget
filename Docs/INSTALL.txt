@@ -26,6 +26,7 @@ This build is ad-hoc signed, without Developer ID signing or Apple notarization.
 macOS may block first launch. If you trust the source, after attempting to open
 it use System Settings → Privacy & Security → Open Anyway.
 Do not disable system security protections.
+Apple 官方说明 / Apple guidance: https://support.apple.com/102445
 
 已验证本机 Apple Silicon 构建；包含 Intel 架构，但未做 Intel 实机测试。
 尚未验证其他 Mac 的首次安装与小组件加载，系统可能限制临时签名扩展。

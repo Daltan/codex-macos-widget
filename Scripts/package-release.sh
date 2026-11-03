@@ -10,6 +10,11 @@ build=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app/Contents/Info.
 [[ "$version" =~ ^[0-9]+(\.[0-9]+)*$ && "$build" =~ ^[0-9]+$ ]] || {
     echo 'Invalid bundle version.' >&2; exit 1;
 }
+widget_plist="$app/Contents/PlugIns/CodexUsageWidget.appex/Contents/Info.plist"
+[[ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$widget_plist")" == "$version" && \
+   "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$widget_plist")" == "$build" ]] || {
+    echo 'App and widget versions must match.' >&2; exit 1;
+}
 for binary in "$app/Contents/MacOS/Codex Usage" \
     "$app/Contents/PlugIns/CodexUsageWidget.appex/Contents/MacOS/CodexUsageWidget"; do
     architectures=" $(lipo -archs "$binary") "
