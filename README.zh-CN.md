@@ -137,6 +137,10 @@ Scripts/launch-agent.sh uninstall
 - **系统日志**：`log show --last 10m --predicate 'subsystem == "com.daltan.codexusage"'`，仅包含缓存错误分类及缓存路径，不含认证信息。
 - **完全卸载**：先卸载 LaunchAgent 并退出应用，再将应用移到废纸篓、移除桌面小组件。按需保留或自行删除本工具缓存及 `com.daltan.codexusage` 偏好设置，不触碰 `.codex`。
 
+## 自动发版
+
+Agent 按 [AGENTS.md](AGENTS.md) 完成提交到交付的闭环。实现提交后，`python3 Scripts/release.py run --bump minor --notes-file .build/next-release.md` 自动管理版本、测试、构建、tag、草稿上传、公开发布与下载回验；中断后用 `publish` 继续。完整步骤见[发布工作流](Docs/RELEASING.md)。
+
 ## 验证与仓库安全
 
 ```sh

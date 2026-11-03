@@ -4,11 +4,11 @@
 
 - `Sources/App/`: SwiftUI application, CLI discovery, Codex protocol adapter, and refresh coordination.
 - `Sources/Core/`: shared models, cache storage, views, and refresh App Intent.
-- `Sources/Widget/`: WidgetKit timeline provider and small, medium, and large layouts.
+- `Sources/Widget/`: WidgetKit timeline provider and small and medium layouts.
 - `Tests/`: XCTest model, persistence, scheduling, and isolated transport tests.
 - `Config/`: application and extension plists and entitlements.
 - `Scripts/`: build, installation, project generation, LaunchAgent management, and secret scanning.
-- `CodexUsage.xcodeproj`: application and extension targets; `Package.swift` builds the testable core. `Docs/VALIDATION.md` records verification evidence. No separate asset catalog currently exists.
+- `CodexUsage.xcodeproj`: application and extension targets; `Package.swift` builds the testable core. `Docs/VALIDATION.md` records verification evidence. Asset catalogs live under `Sources/App/` and `Sources/Core/`; shared English and Simplified Chinese strings live under `Sources/Core/Resources/`.
 
 ## Build, Test, and Development Commands
 
@@ -41,3 +41,20 @@ Existing commits use short imperative subjects, such as `Build native macOS Code
 ## Security & Configuration
 
 Delegate authentication to Codex and keep queries read-only. Never commit credentials, certificates, profiles, caches, or raw responses. Preserve stale successful snapshots on errors. Keep widget cache permissions narrowly scoped. Obtain user authorization before installing or changing LaunchAgents or modifying system/Codex configuration.
+
+
+## Required Agent Delivery Loop
+
+The user wants completed delivery without manually managing versions, tags, or Release assets. For user-requested application features, fixes, or distribution changes, finish the loop below by default unless the user explicitly says not to publish. Documentation-only changes need a commit/push, not a new binary release. Do not publish unrelated work or manufacture a release when nothing changed.
+
+1. **Inspect**: read `git status`, fetch `origin/main`, and inspect the latest release/tag. Work on `main`; do not create an extra branch unless requested. Preserve unrelated changes and untracked files (including `output/`); stage only the task's files.
+2. **Implement and validate**: add appropriate regression coverage, maintain English and Simplified Chinese resources, and record actual evidence/limitations in `Docs/VALIDATION.md`. UI rendering is not proof of desktop-host behavior. Update `Scripts/generate-project.py` and regenerate the project when membership/settings change.
+3. **Commit**: commit the requested implementation. Never use `git add .` to sweep in unrelated material. Do not manually edit bundle version/build numbers during implementation; the release tool owns them.
+4. **Choose the version**: use SemVer—patch for fixes, minor for compatible features (such as bilingual UI), major for intentional breaking changes. State the choice in a progress update; routine patch/minor selection does not need another permission question. Write concise bilingual release notes describing changes, installation, compatibility and real validation limits in an ignored temporary file.
+5. **Run**: `python3 Scripts/release.py run --bump minor --notes-file .build/next-release.md` (choose the appropriate bump). This synchronizes app/widget versions, increments build, commits versioned notes, tests/builds from a committed-source archive, checks DMG/ZIP contents, pushes main, creates/pushes an annotated tag, uploads a draft release, checks downloads, publishes, then anonymously downloads and verifies every asset.
+6. **Recover**: if anything fails after preparation, inspect the phase log and run `python3 Scripts/release.py publish` after fixing the cause. Do not run `run` again and bump a second time. Keep `.build/release-loop/<tag>/`; cached assets are bound to the exact source SHA. Never force-push/reassign a published tag, delete old releases, or use `gh release upload --clobber`. If source changes are required after tagging, use a new version.
+7. **Verify and report**: only claim completion when the receipt reports published status plus successful anonymous download checks and the remote tag resolves to the built source. Return the release link, version/build, validation outcome, and relevant limitations. A successful build, pushed commit, uploaded draft, or queued workflow is not a completed release. Distinguish the published binary from the locally installed app; update the installed app when the task calls for it, then verify its bundle version.
+
+Use Git and GitHub CLI (`gh`) for all repository and release operations. Do not use Computer Use for release forms, uploads, or tags. If `gh` is missing, install it from the official/Homebrew distribution; if login is missing, explain the exact authentication step and use `gh auth login` rather than asking for a token in chat. Browser/device confirmation may require the user, but this is one-time authentication, not a per-release process. Never change system/Codex settings or add LaunchAgents as part of releasing.
+
+The detailed contract and retry commands are in `Docs/RELEASING.md`. The current standing release authorization covers this workflow; do not repeatedly ask for permission for its ordinary commit/tag/upload/publish steps. Stop for an actual credential/permission blocker, divergent upstream history, tag conflict, failed validation, or unexpected unrelated changes.

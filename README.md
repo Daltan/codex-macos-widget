@@ -162,3 +162,7 @@ Useful contributions include CLI compatibility fixes, accessibility improvements
 If this saves you a window switch, **give it a Star** so other Codex developers can find it. Bug reports and small, well-tested pull requests help even more.
 
 [Icon sources and regeneration](Assets/README.md) · [Security reporting](SECURITY.md) · [中文文档](README.zh-CN.md)
+
+## Automated releases
+
+Agents follow the complete delivery loop in [AGENTS.md](AGENTS.md). After committing a feature or fix, `python3 Scripts/release.py run --bump minor --notes-file .build/next-release.md` manages versions, tests, build, tags, draft uploads, publication and download verification. Use `publish` to resume an interrupted release. See [the workflow](Docs/RELEASING.md).
